@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -78,8 +79,9 @@ public final class UserManager {
                 .apply();
 
         synchronized (listeners) {
-            for (OnUserChangedListener l : listeners) {
-                l.onUserChanged(id);
+            Iterator<OnUserChangedListener> iterator = listeners.iterator();
+            while (iterator.hasNext()) {
+                iterator.next().onUserChanged(id);
             }
         }
     }
