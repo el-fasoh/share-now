@@ -12,6 +12,5 @@ class ContactsApplication: Application() {
 
     override fun onCreate() {
         super.onCreate()
-        UserManager.getInstance().initialize(this)
     }
 }

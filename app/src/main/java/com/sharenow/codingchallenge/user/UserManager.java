@@ -8,9 +8,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 /**
  * Handles users that are saved in the app.
  */
+@Singleton
 public final class UserManager {
 
     /**
@@ -25,28 +29,14 @@ public final class UserManager {
         void onUserChanged(final String newUserId);
     }
 
-
-    private static final UserManager INSTANCE = new UserManager();
-
     private static final String PREFS_NAME = "UserManager_prefs";
     private static final String CURRENT_USER_KEY = "currentUser";
 
-    private Context context = null;
+    private Context context;
     private final Set<OnUserChangedListener> listeners = new HashSet<>();
 
-    /**
-     * @return singleton instance of UserManager.
-     */
-    public static UserManager getInstance() {
-        return INSTANCE;
-    }
-
-    /**
-     * Initialize UserManager.
-     *
-     * @param context Context of the application.
-     */
-    public void initialize(Context context) {
+    @Inject
+    public UserManager(Context context) {
         this.context = context;
     }
 
@@ -79,9 +69,8 @@ public final class UserManager {
                 .apply();
 
         synchronized (listeners) {
-            Iterator<OnUserChangedListener> iterator = listeners.iterator();
-            while (iterator.hasNext()) {
-                iterator.next().onUserChanged(id);
+            for (OnUserChangedListener l : listeners) {
+                l.onUserChanged(id);
             }
         }
     }

@@ -17,7 +17,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ContactsViewModel @Inject constructor(
-    private val contactsApi: ContactsApi
+    private val contactsApi: ContactsApi,
+    private val userManager: UserManager
 ): ViewModel() {
 
     private val refreshFlow = MutableSharedFlow<Unit>(replay = 0)
@@ -34,13 +35,13 @@ class ContactsViewModel @Inject constructor(
             ContactsState.Available(
                 contacts = contacts,
                 allContactsCount = contactsCount,
-                availableUsers = UserManager.getInstance().availableUsers,
-                selectedUser = UserManager.getInstance().currentUser
+                availableUsers = userManager.availableUsers,
+                selectedUser = userManager.currentUser
             ) as ContactsState
         }.catch {
             emit(ContactsState.Error(
-                availableUsers = UserManager.getInstance().availableUsers,
-                selectedUser = UserManager.getInstance().currentUser
+                availableUsers = userManager.availableUsers,
+                selectedUser = userManager.currentUser
             ))
         }
     }
@@ -65,12 +66,12 @@ class ContactsViewModel @Inject constructor(
                 trySend(it)
             }
 
-            UserManager.getInstance().addOnUserChangeListener(callback)
+            userManager.addOnUserChangeListener(callback)
 
-            trySend(UserManager.getInstance().currentUser)
+            trySend(userManager.currentUser)
 
             awaitClose {
-                UserManager.getInstance().removeOnUserChangeListener(callback)
+                userManager.removeOnUserChangeListener(callback)
             }
         }.flatMapMerge { userId ->
             refreshFlow
@@ -94,7 +95,7 @@ class ContactsViewModel @Inject constructor(
      * Another user was selected.
      */
     fun onUserSelected(userId: String) {
-        UserManager.getInstance().currentUser = userId
+        userManager.currentUser = userId
     }
 
 }
