@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/size_2">
+
+    <TextView
+        android:id="@+id/name"
+        android:textStyle="bold"
+        android:textSize="@dimen/text_size_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Some Name"/>
+
+    <TextView
+        android:id="@+id/email"
+        android:textSize="@dimen/text_size_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="some@email.com"/>
+
+</LinearLayout>
