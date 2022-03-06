@@ -1,11 +1,11 @@
 package com.sharenow.codingchallenge
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -43,7 +43,7 @@ class ContactsActivity : AppCompatActivity() {
         setContentView(viewBinding.root)
         setSupportActionBar(viewBinding.toolbar)
 
-        with (viewBinding) {
+        with(viewBinding) {
             contactsRecyclerView.adapter = contactsAdapter
             userSpinner.adapter = usersAdapter
 
@@ -51,7 +51,7 @@ class ContactsActivity : AppCompatActivity() {
                 viewModel.onRefreshRequested()
             }
 
-            userSpinner.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
+            userSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
                 override fun onItemSelected(
                     parent: AdapterView<*>,
@@ -70,7 +70,6 @@ class ContactsActivity : AppCompatActivity() {
                 override fun onNothingSelected(parent: AdapterView<*>) {
                     // when nothing selected, nothing is done (c) Some philosopher probably
                 }
-
             }
         }
 
@@ -84,7 +83,6 @@ class ContactsActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun updateState(state: ContactsState) {
         updatingState = true
@@ -121,5 +119,3 @@ class ContactsActivity : AppCompatActivity() {
         updatingState = false
     }
 }
-
-
