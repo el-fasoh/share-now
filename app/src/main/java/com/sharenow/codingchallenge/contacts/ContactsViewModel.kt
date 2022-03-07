@@ -21,7 +21,7 @@ class ContactsViewModel @Inject constructor(
     private val userManager: UserManager
 ) : ViewModel() {
 
-    private val refreshFlow = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
+    private val refreshFlow = MutableSharedFlow<Unit>(replay = 0)
 
     /**
      * Returns [Flow] that never completes, never errors out
@@ -56,12 +56,6 @@ class ContactsViewModel @Inject constructor(
                 contactsApi.getContacts(userId).toList()
             }
             .flowOn(Dispatchers.IO)
-    }
-
-    private fun contactsCountFlow(): Flow<Int> {
-        return contactsFlow().map { contactList ->
-            contactList.size
-        }.flowOn(Dispatchers.IO)
     }
 
     private fun fetchTriggersFlow(): Flow<String> {
