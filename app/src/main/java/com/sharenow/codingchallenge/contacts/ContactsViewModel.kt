@@ -7,7 +7,7 @@ import com.sharenow.codingchallenge.contacts.data.ContactsState
 import com.sharenow.codingchallenge.contacts.domain.ContactsApi
 import com.sharenow.codingchallenge.user.UserManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,7 +19,7 @@ import javax.inject.Inject
 class ContactsViewModel @Inject constructor(
     private val contactsApi: ContactsApi,
     private val userManager: UserManager
-): ViewModel() {
+) : ViewModel() {
 
     private val refreshFlow = MutableSharedFlow<Unit>(replay = 0)
 
@@ -28,22 +28,26 @@ class ContactsViewModel @Inject constructor(
      * and emits current state.
      */
     fun stateFlow(): Flow<ContactsState> {
-        return combine(
-            contactsFlow(),
-            contactsCountFlow()
-        ) { contacts, contactsCount ->
-            ContactsState.Available(
-                contacts = contacts,
-                allContactsCount = contactsCount,
-                availableUsers = userManager.availableUsers,
-                selectedUser = userManager.currentUser
-            ) as ContactsState
-        }.catch {
-            emit(ContactsState.Error(
-                availableUsers = userManager.availableUsers,
-                selectedUser = userManager.currentUser
-            ))
-        }
+        return contactsFlow()
+            .flowOn(Dispatchers.Default)
+            .map { contacts ->
+                contacts.distinctBy { it.email }
+            }
+            .map { contacts ->
+                ContactsState.Available(
+                    contacts = contacts,
+                    allContactsCount = contacts.size,
+                    availableUsers = userManager.getAvailableUsers(),
+                    selectedUser = userManager.getCurrentUser()
+                ) as ContactsState
+            }.catch {
+                emit(
+                    ContactsState.Error(
+                        availableUsers = userManager.getAvailableUsers(),
+                        selectedUser = userManager.getCurrentUser()
+                    )
+                )
+            }
     }
 
     private fun contactsFlow(): Flow<List<Contact>> {
@@ -51,36 +55,12 @@ class ContactsViewModel @Inject constructor(
             .map { userId ->
                 contactsApi.getContacts(userId).toList()
             }
-    }
-
-    private fun contactsCountFlow(): Flow<Int> {
-        return contactsFlow().map { contactList ->
-            contactList.size
-        }
+            .flowOn(Dispatchers.IO)
     }
 
     private fun fetchTriggersFlow(): Flow<String> {
-        return callbackFlow {
-
-            val callback = UserManager.OnUserChangedListener {
-                trySend(it)
-            }
-
-            userManager.addOnUserChangeListener(callback)
-
-            trySend(userManager.currentUser)
-
-            awaitClose {
-                userManager.removeOnUserChangeListener(callback)
-            }
-        }.flatMapMerge { userId ->
-            refreshFlow
-                .onStart {
-                    emit(Unit)
-                }
-                .map {
-                    userId
-                }
+        return userManager.currentUserAsFlow.flatMapMerge { userId ->
+            refreshFlow.onStart { emit(Unit) }.map { userId }
         }
     }
 
@@ -95,7 +75,6 @@ class ContactsViewModel @Inject constructor(
      * Another user was selected.
      */
     fun onUserSelected(userId: String) {
-        userManager.currentUser = userId
+        userManager.setCurrentUser(userId)
     }
-
 }
