@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -71,6 +72,10 @@ class ContactsActivity : AppCompatActivity() {
                     // when nothing selected, nothing is done (c) Some philosopher probably
                 }
             }
+
+            search.addTextChangedListener {
+                contactsAdapter.search(it.toString())
+            }
         }
 
         lifecycleScope.launch {
@@ -102,7 +107,7 @@ class ContactsActivity : AppCompatActivity() {
                     contactsRecyclerView.isVisible = true
                     count.isInvisible = false
 
-                    contactsAdapter.submitList(state.contacts)
+                    contactsAdapter.submitContacts(state.contacts)
                     count.text = "${state.allContactsCount}"
                 }
 
