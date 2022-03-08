@@ -2,4 +2,5 @@
     <string name="app_name">Contacts - CodingChallenge</string>
 
     <string name="general_error">Something went wrong</string>
+    <string name="search_contacts">Search contacts</string>
 </resources>

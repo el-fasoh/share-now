@@ -60,7 +60,11 @@ class ContactsViewModel @Inject constructor(
 
     private fun fetchTriggersFlow(): Flow<String> {
         return userManager.currentUserAsFlow.flatMapMerge { userId ->
-            refreshFlow.onStart { emit(Unit) }.map { userId }
+            refreshFlow.onStart {
+                emit(Unit)
+            }.map {
+                userId
+            }
         }
     }
 
