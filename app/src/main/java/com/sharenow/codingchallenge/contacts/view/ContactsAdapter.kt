@@ -52,11 +52,12 @@ class ContactsAdapter : ListAdapter<Contact, ContactsAdapter.ViewHolder>(Contact
         originalList.clear()
         originalList.addAll(contacts)
         submitList(originalList)
+        notifyDataSetChanged()
     }
 
     class ContactsDiffUtil : DiffUtil.ItemCallback<Contact>() {
         override fun areItemsTheSame(oldItem: Contact, newItem: Contact): Boolean {
-            return oldItem.id == newItem.id
+            return oldItem.id == newItem.id && oldItem.name == newItem.name && oldItem.email == newItem.email
         }
 
         override fun areContentsTheSame(oldItem: Contact, newItem: Contact): Boolean {

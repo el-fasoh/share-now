@@ -21,34 +21,40 @@ class ContactsViewModel @Inject constructor(
     private val userManager: UserManager
 ) : ViewModel() {
 
-    private val refreshFlow = MutableSharedFlow<Unit>(replay = 0)
+    private val refreshFlow = MutableSharedFlow<Unit>(replay = 1)
+
+    init {
+        refreshFlow.tryEmit(Unit)
+    }
 
     /**
      * Returns [Flow] that never completes, never errors out
      * and emits current state.
      */
-    fun stateFlow(): Flow<ContactsState> {
-        return contactsFlow()
-            .flowOn(Dispatchers.Default)
-            .map { contacts ->
-                contacts.distinctBy { it.email }
-            }
-            .map { contacts ->
-                ContactsState.Available(
-                    contacts = contacts,
-                    allContactsCount = contacts.size,
-                    availableUsers = userManager.getAvailableUsers(),
-                    selectedUser = userManager.getCurrentUser()
-                ) as ContactsState
-            }.catch {
-                emit(
-                    ContactsState.Error(
-                        availableUsers = userManager.getAvailableUsers(),
-                        selectedUser = userManager.getCurrentUser()
+    fun stateFlow(): Flow<ContactsState> = flow {
+        fetchTriggersFlow()
+            .map { userId ->
+                try {
+                    val contacts = contactsApi.getContacts(userId).distinctBy { it.email }.sortedBy { it.name }
+                    emit(
+                        ContactsState.Available(
+                            contacts = contacts,
+                            allContactsCount = contacts.size,
+                            availableUsers = userManager.getAvailableUsers(),
+                            selectedUser = userManager.getCurrentUser()
+                        ) as ContactsState
                     )
-                )
+                } catch (e: Exception) {
+                    emit(
+                        ContactsState.Error(
+                            availableUsers = userManager.getAvailableUsers(),
+                            selectedUser = userManager.getCurrentUser()
+                        )
+                    )
+                }
             }
-    }
+            .collect()
+    }.flowOn(Dispatchers.IO)
 
     private fun contactsFlow(): Flow<List<Contact>> {
         return fetchTriggersFlow()
@@ -59,12 +65,8 @@ class ContactsViewModel @Inject constructor(
     }
 
     private fun fetchTriggersFlow(): Flow<String> {
-        return userManager.currentUserAsFlow.flatMapMerge { userId ->
-            refreshFlow.onStart {
-                emit(Unit)
-            }.map {
-                userId
-            }
+        return combine(refreshFlow, userManager.currentUserAsFlow) { refresh, userId ->
+            userId
         }
     }
 
